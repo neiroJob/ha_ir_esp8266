@@ -3,10 +3,14 @@
 #include <IRsend.h>
 
 // ---------------------------------------------------------------------------
-// Hardware pins (Wemos D1 mini labels)
+// Hardware pins — TYSW_012_ZK_MAIN_V1.1 (round Tuya IR puck, TYWE3S module).
+// Matches the Tasmota "YTF IR Bridge" template for this board family:
+// https://tasmota.github.io/docs/devices/YTF-IR-Bridge/
 // ---------------------------------------------------------------------------
-constexpr uint16_t kIrLedPin   = D2;  // IR LED (transmit), through a transistor driver
-constexpr uint16_t kIrRecvPin  = D5;  // IR receiver module (e.g. TSOP38238)
+constexpr uint16_t kIrLedPin   = 14;  // GPIO14 - IR LED array, via transistor U2
+constexpr uint16_t kIrRecvPin  = 5;   // GPIO5  - onboard IR receiver
+constexpr uint16_t kStatusLedPin = 4; // GPIO4  - onboard blue LED (active low), unused for now
+constexpr uint16_t kButtonPin  = 13;  // GPIO13 - onboard button, unused for now
 
 constexpr uint16_t kCaptureBufferSize = 1024;
 constexpr uint8_t  kTimeoutMs         = 15;  // Suits most A/C units.
