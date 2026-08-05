@@ -18,14 +18,14 @@ constexpr uint8_t  kTimeoutMs         = 15;  // Suits most A/C units.
 // ---------------------------------------------------------------------------
 // Air conditioner protocol
 // ---------------------------------------------------------------------------
-// Set this to the protocol your A/C uses. See the full list of supported
-// protocols in IRsend.h / IRac.cpp (e.g. COOLIX, GREE, MITSUBISHI_AC,
-// FUJITSU_AC, DAIKIN, PANASONIC_AC, TOSHIBA_AC, HITACHI_AC, SAMSUNG_AC...).
-// COOLIX is a common generic protocol used by many cheap split A/C units,
-// so it's a reasonable starting default. Use the IR receiver + Serial
-// monitor (see the "learn" topic in main.cpp) to identify your actual unit.
-constexpr decode_type_t kAcProtocol = decode_type_t::COOLIX;
-constexpr int16_t kAcModel = -1;  // Only needed for a few protocols (e.g. Fujitsu, Kelvinator).
+// Unit: NEOLINE NAG/in-09HN1. Its official WiFi accessory uses the
+// "NetHome Plus" app (Midea's app, package com.midea.aircondition), and the
+// remote's feature set (iClean, Turbo, Health, Quiet, H/V-Sweep) matches
+// Midea-OEM firmware, so this is a Midea unit rebadged as NEOLINE.
+// Confirm/correct via the IR receiver + Serial monitor (see the "learn"
+// topic in main.cpp) if commands don't behave as expected.
+constexpr decode_type_t kAcProtocol = decode_type_t::MIDEA;
+constexpr int16_t kAcModel = -1;  // Not used by the Midea protocol.
 
 constexpr float kAcMinTempC = 16.0f;
 constexpr float kAcMaxTempC = 30.0f;
