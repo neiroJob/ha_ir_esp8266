@@ -18,14 +18,16 @@ constexpr uint8_t  kIrRecvTimeoutMs   = 15;  // Suits most A/C units.
 // ---------------------------------------------------------------------------
 // Air conditioner protocol
 // ---------------------------------------------------------------------------
-// Unit: NEOLINE NAG/in-09HN1. Its official WiFi accessory uses the
-// "NetHome Plus" app (Midea's app, package com.midea.aircondition), and the
-// remote's feature set (iClean, Turbo, Health, Quiet, H/V-Sweep) matches
-// Midea-OEM firmware, so this is a Midea unit rebadged as NEOLINE.
-// Confirm/correct via the IR receiver + Serial monitor (see the "learn"
-// topic in main.cpp) if commands don't behave as expected.
-constexpr decode_type_t kAcProtocol = decode_type_t::MIDEA;
-constexpr int16_t kAcModel = -1;  // Not used by the Midea protocol.
+// Unit: NEOLINE NAG/in-09HN1. Confirmed directly by pointing the original
+// remote at the board's onboard IR receiver: pressing power on/off decodes
+// as protocol MIRAGE, 120 bits (matches kMirageStateLength = 15 bytes).
+// (The earlier guess of MIDEA, based on the WiFi accessory app, was wrong.)
+// MIRAGE has two known remote model variants in IRremoteESP8266
+// (mirage_ac_remote_model_t::kKKG9AC vs kKKG29AC) with slightly different
+// state layouts. -1 uses the library default (kKKG9AC); if commands are
+// accepted but do the wrong thing, try the other model.
+constexpr decode_type_t kAcProtocol = decode_type_t::MIRAGE;
+constexpr int16_t kAcModel = -1;
 
 constexpr float kAcMinTempC = 16.0f;
 constexpr float kAcMaxTempC = 30.0f;
