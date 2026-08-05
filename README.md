@@ -1,68 +1,89 @@
 # ha_ir_esp8266
 
-ESP8266-based IR bridge that lets Home Assistant control an air conditioner
-over MQTT (MQTT Discovery, exposed as a `climate` entity).
+ИК-мост на ESP8266, который позволяет управлять кондиционером из Home
+Assistant по MQTT (MQTT Discovery, сущность `climate`).
 
-## Hardware
+## Кондиционер
 
-Target board: **TYSW_012_ZK_MAIN_V1.1** — a round Tuya universal IR remote
-puck built around a bare **TYWE3S** module (ESP8266EX, 1MB flash). It matches
-Tasmota's ["YTF IR Bridge"](https://tasmota.github.io/docs/devices/YTF-IR-Bridge/)
-template, so pins in `include/config.h` are set accordingly:
+**NEOLINE NAG/in-09HN1** — это OEM-кондиционер на базе Midea: официальный
+Wi-Fi модуль для него работает через приложение **NetHome Plus**
+(`com.midea.aircondition`), а набор функций пульта (iClean, Turbo, Health,
+Quiet, H/V-Sweep) типичен для Midea-прошивки. Поэтому в проекте используется
+ИК-протокол `MIDEA` (см. `include/config.h`).
 
-- `GPIO14` — IR LED ring (via transistor `U2`), transmit
-- `GPIO5` — onboard IR receiver
-- `GPIO4` — onboard blue status LED (active low, not used yet)
-- `GPIO13` — onboard button (not used yet)
+<p>
+  <img src="docs/photos/con1.jpg" alt="Шильдик кондиционера NEOLINE NAG/in-09HN1" width="45%">
+  <img src="docs/photos/pult.jpg" alt="Пульт NEOLINE" width="45%">
+</p>
 
-The board exposes a 7-pin header (`3V3 RST TXD RXD IO0 IO2 GND`) for
-flashing. Wire a 3.3V USB-TTL adapter:
+## Плата
 
-| Board header | USB-TTL adapter |
+Целевая плата: **TYSW_012_ZK_MAIN_V1.1** — круглый Tuya ИК-пульт на голом
+модуле **TYWE3S** (ESP8266EX, 1 МБ флеша). Совпадает с шаблоном Tasmota
+["YTF IR Bridge"](https://tasmota.github.io/docs/devices/YTF-IR-Bridge/),
+поэтому пины в `include/config.h` заданы по нему:
+
+- `GPIO14` — кольцо ИК-светодиодов (через транзистор `U2`), передача
+- `GPIO5` — встроенный ИК-приёмник
+- `GPIO4` — встроенный синий светодиод статуса (активный low, пока не используется)
+- `GPIO13` — встроенная кнопка (пока не используется)
+
+<p>
+  <img src="docs/photos/plata1.jpg" alt="Плата, лицевая сторона" width="45%">
+  <img src="docs/photos/plata2.jpg" alt="Плата, модуль TYWE3S" width="45%">
+  <img src="docs/photos/plata3.jpg" alt="Плата, обратная сторона" width="45%">
+  <img src="docs/photos/plata4.jpg" alt="Плата, разъём USB и модуль" width="45%">
+</p>
+
+На плате есть 7-пиновый разъём (`3V3 RST TXD RXD IO0 IO2 GND`) для прошивки.
+Подключение USB-TTL адаптера на 3.3В:
+
+| Разъём платы | USB-TTL адаптер |
 |---|---|
 | 3V3 | 3.3V |
 | GND | GND |
 | TXD | RX |
 | RXD | TX |
-| IO0 | GND (only while flashing — puts the ESP8266 in bootloader mode) |
+| IO0 | GND (только на время прошивки — переводит ESP8266 в режим загрузчика) |
 
-Ground `IO0`, then power up / press `RST` to enter flash mode, run the
-upload, then disconnect `IO0` from GND and reset to run the firmware
-normally. `board_build.flash_size` in `platformio.ini` is set to 1MB per the
-TYWE3S datasheet — if `pio run -t upload` reports a flash size mismatch,
-adjust it there (or run `esptool.py flash_id` to confirm the real chip).
+Замкните `IO0` на `GND`, затем подайте питание / нажмите `RST`, чтобы войти
+в режим прошивки, залейте firmware, после — отключите `IO0` от `GND` и
+перезагрузите плату для обычной работы. `board_build.flash_size` в
+`platformio.ini` выставлен в 1 МБ по даташиту TYWE3S — если `pio run -t
+upload` ругается на несовпадение размера флеша, поправьте это значение (или
+уточните чип командой `esptool.py flash_id`).
 
-## Setup
+## Настройка
 
-1. Copy `include/secrets.h.example` to `include/secrets.h` and fill in your
-   WiFi and MQTT broker credentials.
-2. In `include/config.h`, set `kAcProtocol` to match your A/C unit's IR
-   protocol (see the comment there — default is `COOLIX`, a common generic
-   protocol). If you don't know your protocol, flash the firmware, point your
-   original remote at the onboard IR receiver, and watch the Serial monitor
-   / the `ha_ir_esp8266/<id>/learn` MQTT topic for the detected protocol and
-   code.
-3. Build and upload with PlatformIO:
+1. Скопируйте `include/secrets.h.example` в `include/secrets.h` и впишите
+   свои данные WiFi и MQTT-брокера. Файл `secrets.h` в `.gitignore` и в
+   репозиторий не попадает.
+2. В `include/config.h` при необходимости скорректируйте `kAcProtocol` (по
+   умолчанию `MIDEA`, см. обоснование выше). Если команды кондиционер
+   игнорирует, прошейте firmware, наведите оригинальный пульт на встроенный
+   ИК-приёмник и посмотрите на реальные коды в Serial-мониторе / MQTT-топике
+   `ha_ir_esp8266/<id>/learn`.
+3. Соберите и залейте прошивку через PlatformIO:
 
    ```
    pio run -t upload
    ```
 
-4. The device will publish an MQTT Discovery config for a `climate` entity;
-   it should appear automatically in Home Assistant.
+4. Устройство опубликует MQTT Discovery конфиг для сущности `climate` — она
+   должна появиться в Home Assistant автоматически.
 
-## MQTT topics
+## MQTT-топики
 
-All topics are prefixed with `ha_ir_esp8266/<chip-id>/`:
+Все топики с префиксом `ha_ir_esp8266/<chip-id>/`:
 
 - `mode/set`, `mode/state` — off/auto/cool/heat/dry/fan_only
-- `temp/set`, `temp/state` — target temperature in °C
+- `temp/set`, `temp/state` — целевая температура в °C
 - `fan/set`, `fan/state` — auto/min/low/medium/high/max
 - `availability` — online/offline (LWT)
-- `learn` — JSON dump of any IR code the receiver captures (debugging)
+- `learn` — JSON с любым пойманным ИК-кодом (для отладки/подбора протокола)
 
-## Status
+## Статус
 
-Initial skeleton: WiFi + MQTT connectivity, Home Assistant MQTT Discovery,
-IR transmit via `IRac`, and IR receive for protocol learning. Not yet
-flashed/tested on real hardware.
+Начальный каркас: WiFi + MQTT, Home Assistant MQTT Discovery, отправка ИК
+через `IRac`, приём ИК для распознавания протокола. На реальном железе ещё
+не проверялось.
