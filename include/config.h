@@ -13,7 +13,7 @@ constexpr uint16_t kStatusLedPin = 4; // GPIO4  - onboard blue LED (active low),
 constexpr uint16_t kButtonPin  = 13;  // GPIO13 - onboard button, unused for now
 
 constexpr uint16_t kCaptureBufferSize = 1024;
-constexpr uint8_t  kTimeoutMs         = 15;  // Suits most A/C units.
+constexpr uint8_t  kIrRecvTimeoutMs   = 15;  // Suits most A/C units.
 
 // ---------------------------------------------------------------------------
 // Air conditioner protocol

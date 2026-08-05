@@ -20,7 +20,7 @@ WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 
 IRac ac(kIrLedPin);
-IRrecv irrecv(kIrRecvPin, kCaptureBufferSize, kTimeoutMs, true);
+IRrecv irrecv(kIrRecvPin, kCaptureBufferSize, kIrRecvTimeoutMs, true);
 decode_results irResults;
 
 String deviceId;
