@@ -103,7 +103,9 @@ void publishDiscovery() {
 
   String payload;
   serializeJson(doc, payload);
-  mqttClient.publish(discoveryTopic.c_str(), payload.c_str(), true);
+  bool ok = mqttClient.publish(discoveryTopic.c_str(), payload.c_str(), true);
+  Serial.printf("Discovery publish %s (%u bytes)\n", ok ? "ok" : "FAILED",
+                payload.length());
 }
 
 void handleModeCommand(const String &payload) {
@@ -219,7 +221,7 @@ void setup() {
   ac.next.clock = -1;
   irrecv.enableIRIn();
 
-  mqttClient.setBufferSize(768);
+  mqttClient.setBufferSize(1024);
   mqttClient.setServer(kMqttHost, kMqttPort);
   mqttClient.setCallback(mqttCallback);
 }
