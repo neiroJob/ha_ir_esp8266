@@ -166,6 +166,7 @@ void setupWifi() {
 
 bool mqttReconnect() {
   String clientId = "ha_ir_esp8266-" + deviceId;
+  Serial.printf("Connecting to MQTT %s:%u...\n", kMqttHost, kMqttPort);
   bool ok;
   if (strlen(kMqttUser) > 0) {
     ok = mqttClient.connect(clientId.c_str(), kMqttUser, kMqttPassword,
@@ -174,7 +175,13 @@ bool mqttReconnect() {
     ok = mqttClient.connect(clientId.c_str(), nullptr, nullptr,
                              availabilityTopic.c_str(), 0, true, "offline");
   }
-  if (!ok) return false;
+  if (!ok) {
+    // See PubSubClient.h for the meaning of these codes, e.g.
+    // -2 = MQTT_CONNECT_FAILED (can't reach kMqttHost:kMqttPort at all),
+    // -4 = MQTT_CONNECTION_TIMEOUT, 5 = MQTT_CONNECT_UNAUTHORIZED (bad user/pass).
+    Serial.printf("MQTT connect failed, state=%d\n", mqttClient.state());
+    return false;
+  }
 
   mqttClient.publish(availabilityTopic.c_str(), "online", true);
   mqttClient.subscribe(modeCommandTopic.c_str());
