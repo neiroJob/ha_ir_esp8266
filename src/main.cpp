@@ -57,7 +57,11 @@ void sendAcState() {
   ac.next.fanspeed = currentFan;
   ac.next.swingv = stdAc::swingv_t::kAuto;
   ac.next.swingh = stdAc::swingh_t::kAuto;
+  Serial.printf("Sending IR: power=%d mode=%s temp=%.0f fan=%s\n",
+                ac.next.power, IRac::opmodeToString(currentMode).c_str(),
+                currentTemp, IRac::fanspeedToString(currentFan).c_str());
   ac.sendAc();
+  Serial.println("IR sent");
   publishState();
 }
 
@@ -130,6 +134,7 @@ void mqttCallback(char *topic, byte *payloadBytes, unsigned int length) {
   payload.reserve(length);
   for (unsigned int i = 0; i < length; i++) payload += (char)payloadBytes[i];
   String topicStr(topic);
+  Serial.printf("MQTT in: %s = %s\n", topicStr.c_str(), payload.c_str());
 
   if (topicStr == modeCommandTopic) {
     handleModeCommand(payload);
